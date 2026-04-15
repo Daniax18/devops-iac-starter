@@ -1,5 +1,4 @@
 version: '3.9'
-
 services:
   authentification-db:
     image: postgres:15
@@ -30,8 +29,38 @@ services:
     networks:
       - iac-network
 
+  product-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: product_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - product_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - iac-network
+
+  product-service:
+    build: ./Product
+    ports:
+      - "5001:8080"
+    depends_on:
+      product-db:
+        condition: service_healthy  
+    networks:
+      - iac-network
+
 volumes:
   authentification_data:
+  product_data:
 
 networks:
   iac-network:
