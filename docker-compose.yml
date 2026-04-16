@@ -20,9 +20,9 @@ services:
   authentification-db:
     image: postgres:15
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: authentication_db
+      POSTGRES_USER: ${AUTH_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${AUTH_DB_NAME:-authentication_db}
     ports:
       - "5433:5432"
     volumes:
@@ -38,6 +38,12 @@ services:
 
   authentification-service:
     build: ./Authentification
+    environment:
+      ConnectionStrings__DockerDb: Host=authentification-db;Database=${AUTH_DB_NAME:-authentication_db};Username=${AUTH_DB_USER:-postgres};Password=${AUTH_DB_PASSWORD:-postgres}
+      JwtSettings__SecretKey: ${JWT_SECRET:-dev-only-change-me-before-production}
+      JwtSettings__Issuer: ${JWT_ISSUER:-AuthAPI}
+      JwtSettings__Audience: ${JWT_AUDIENCE:-AuthAPIUsers}
+      JwtSettings__ExpiryInMinutes: ${JWT_EXPIRY_MINUTES:-60}
     ports:
       - "5000:8080"
     depends_on:
@@ -49,9 +55,9 @@ services:
   product-db:
     image: postgres:15
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: product_db
+      POSTGRES_USER: ${PRODUCT_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${PRODUCT_DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${PRODUCT_DB_NAME:-product_db}
     ports:
       - "5434:5432"
     volumes:
@@ -67,6 +73,8 @@ services:
 
   product-service:
     build: ./Product
+    environment:
+      ConnectionStrings__DockerDb: Host=product-db;Database=${PRODUCT_DB_NAME:-product_db};Username=${PRODUCT_DB_USER:-postgres};Password=${PRODUCT_DB_PASSWORD:-postgres}
     ports:
       - "5001:8080"
     depends_on:
