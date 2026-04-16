@@ -1,4 +1,4 @@
-﻿using Authentification.Domain;
+using Authentification.Domain;
 using Authentification.Service.Interface;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -19,9 +19,13 @@ namespace Authentification.Service
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var secret = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT secret is not configured.");
+            if (secret == "SET_THIS_IN_ENVIRONMENT")
+            {
+                throw new InvalidOperationException("JWT secret must be provided through environment variables or user secrets.");
+            }
             var issuer = jwtSettings["Issuer"] ?? throw new InvalidOperationException("JWT issuer is not configured.");
             var audience = jwtSettings["Audience"] ?? throw new InvalidOperationException("JWT audience is not configured.");
-            var expirationMinutes = int.TryParse(jwtSettings["ExpirationMinutes"], out var minutes) ? minutes : 60;
+            var expirationMinutes = int.TryParse(jwtSettings["ExpiryInMinutes"], out var minutes) ? minutes : 60;
 
             var token = new JwtSecurityToken(
                 issuer: issuer,

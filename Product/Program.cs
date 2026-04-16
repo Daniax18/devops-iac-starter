@@ -8,8 +8,14 @@ using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString =
+    //builder.Configuration.GetConnectionString("AppDb") ??
+    builder.Configuration.GetConnectionString("DockerDb") ??
+    //builder.Configuration.GetConnectionString("LocalDb") ??
+    throw new InvalidOperationException("No database connection string is configured.");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DockerDb")));
+                options.UseNpgsql(connectionString));
 
 builder.Services.AddControllers();
 

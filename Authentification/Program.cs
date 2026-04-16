@@ -10,8 +10,14 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString =
+    // builder.Configuration.GetConnectionString("AppDb") ??
+    builder.Configuration.GetConnectionString("DockerDb") ??
+    // builder.Configuration.GetConnectionString("LocalDb") ??
+    throw new InvalidOperationException("No database connection string is configured.");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DockerDb")));
+                options.UseNpgsql(connectionString));
 
 builder.Services.AddControllers();
 
@@ -20,8 +26,13 @@ builder.Services.AddControllers();
 // (Authentification par token)
 // =============================
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-// Récupère la clé secrète pour signer les tokens
-var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("SecretKey is not configured in appsettings.json");
+// Rï¿½cupï¿½re la clï¿½ secrï¿½te pour signer les tokens
+var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JwtSettings:SecretKey is not configured.");
+
+if (secretKey == "SET_THIS_IN_ENVIRONMENT")
+{
+    throw new InvalidOperationException("JwtSettings:SecretKey must be provided through environment variables or user secrets.");
+}
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
@@ -29,7 +40,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 
 builder.Services.AddAuthentication(options =>
 {
-    // Définit JWT comme méthode d’authentification par défaut
+    // Dï¿½finit JWT comme mï¿½thode dï¿½authentification par dï¿½faut
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
@@ -38,14 +49,14 @@ builder.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,                                                                  // Vérifie qui a émis le token
-        ValidateAudience = true,                                                                // Vérifie à qui le token est destiné
-        ValidateLifetime = true,                                                                // Vérifie expiration
-        ValidateIssuerSigningKey = true,                                                        // Vérifie signature du token
+        ValidateIssuer = true,                                                                  // Vï¿½rifie qui a ï¿½mis le token
+        ValidateAudience = true,                                                                // Vï¿½rifie ï¿½ qui le token est destinï¿½
+        ValidateLifetime = true,                                                                // Vï¿½rifie expiration
+        ValidateIssuerSigningKey = true,                                                        // Vï¿½rifie signature du token
         ValidIssuer = jwtSettings["Issuer"],                                                    // Doit correspondre au token
         ValidAudience = jwtSettings["Audience"],                                                // Doit correspondre au token
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),         // Clé utilisée pour signer et valider le token
-        ClockSkew = TimeSpan.Zero                                                               // Pas de tolérance sur l'expiration (plus strict)
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),         // Clï¿½ utilisï¿½e pour signer et valider le token
+        ClockSkew = TimeSpan.Zero                                                               // Pas de tolï¿½rance sur l'expiration (plus strict)
     };
 });
 
@@ -55,7 +66,7 @@ builder.Services.AddScoped<IUser, UserService>();
 // Add services to the container.
 var app = builder.Build();
 
-// 5. Migration AU DÉMARRAGE (avant app.Run)
+// 5. Migration AU Dï¿½MARRAGE (avant app.Run)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -66,8 +77,8 @@ using (var scope = app.Services.CreateScope())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();        // Active l’authentification (lecture du token JWT)
-//app.UseAuthorization();         // Active l’autorisation ([Authorize])
+app.UseAuthentication();        // Active lï¿½authentification (lecture du token JWT)
+//app.UseAuthorization();         // Active lï¿½autorisation ([Authorize])
 
 app.MapControllers();           // Mappe les routes des controllers
 
