@@ -4,7 +4,7 @@ services:
   front-service:
     build: ./Front
     ports:
-      - "4200:4200"
+      - "8080:80"
     depends_on:
       - gateway-service
     networks:
@@ -12,8 +12,6 @@ services:
 
   gateway-service:
     build: ./Gateway
-    ports:
-      - "8080:8080"
     networks:
       - iac-network
 
@@ -23,8 +21,6 @@ services:
       POSTGRES_USER: ${AUTH_DB_USER:-postgres}
       POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD:-postgres}
       POSTGRES_DB: ${AUTH_DB_NAME:-authentication_db}
-    ports:
-      - "5433:5432"
     volumes:
       - authentification_data:/var/lib/postgresql/data
     healthcheck:
@@ -44,8 +40,6 @@ services:
       JwtSettings__Issuer: ${JWT_ISSUER:-AuthAPI}
       JwtSettings__Audience: ${JWT_AUDIENCE:-AuthAPIUsers}
       JwtSettings__ExpiryInMinutes: ${JWT_EXPIRY_MINUTES:-60}
-    ports:
-      - "5000:8080"
     depends_on:
       authentification-db:
         condition: service_healthy
@@ -58,8 +52,6 @@ services:
       POSTGRES_USER: ${PRODUCT_DB_USER:-postgres}
       POSTGRES_PASSWORD: ${PRODUCT_DB_PASSWORD:-postgres}
       POSTGRES_DB: ${PRODUCT_DB_NAME:-product_db}
-    ports:
-      - "5434:5432"
     volumes:
       - product_data:/var/lib/postgresql/data
     healthcheck:

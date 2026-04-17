@@ -1,4 +1,4 @@
-FROM node:24-bookworm-slim
+FROM node:24-bookworm-slim AS build
 
 WORKDIR /app
 
@@ -8,9 +8,9 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# installer un serveur statique
-RUN npm install -g serve
+FROM nginx:1.27-alpine
 
-EXPOSE 4200
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist/front-app/browser /usr/share/nginx/html
 
-CMD ["serve", "-s", "dist/front-app/browser", "-l", "4200"]
+EXPOSE 80

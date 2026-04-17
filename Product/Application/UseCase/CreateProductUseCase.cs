@@ -8,6 +8,7 @@ namespace Product.Application.UseCase
     public class CreateProductUseCase : ICreateProductUseCase
     {
         private readonly IProductPersistence _productPersistence;
+        
         public CreateProductUseCase(IProductPersistence productPersistence)
         {
             _productPersistence = productPersistence;
