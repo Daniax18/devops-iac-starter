@@ -21,6 +21,8 @@ services:
       POSTGRES_USER: ${AUTH_DB_USER:-postgres}
       POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD:-postgres}
       POSTGRES_DB: ${AUTH_DB_NAME:-authentication_db}
+    ports:
+      - "5433:5432"
     volumes:
       - authentification_data:/var/lib/postgresql/data
     healthcheck:
@@ -52,6 +54,8 @@ services:
       POSTGRES_USER: ${PRODUCT_DB_USER:-postgres}
       POSTGRES_PASSWORD: ${PRODUCT_DB_PASSWORD:-postgres}
       POSTGRES_DB: ${PRODUCT_DB_NAME:-product_db}
+    ports:
+      - "5434:5432"
     volumes:
       - product_data:/var/lib/postgresql/data
     healthcheck:
