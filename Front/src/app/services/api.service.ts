@@ -3,7 +3,7 @@ import axios, { AxiosError } from 'axios';
 import { LoginPayload, LoginResponse, Product, ProductPayload, RegisterPayload } from '../models/api.models';
 
 const apiClient = axios.create({
-  baseURL: 'http://18.207.114.208:8080',
+  baseURL: '',
   headers: {
     'Content-Type': 'application/json',
   },
