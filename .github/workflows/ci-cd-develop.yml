@@ -91,6 +91,9 @@ jobs:
           EC2_DEPLOY_PATH: ${{ secrets.EC2_DEPLOY_PATH }}
           DEPLOY_BRANCH: develop
         run: |
-          ssh -i ~/.ssh/deploy_key "${EC2_USER}@${EC2_HOST}" \
+          ssh -i ~/.ssh/deploy_key \
+            -o ServerAliveInterval=60 \
+            -o ServerAliveCountMax=10 \
+            "${EC2_USER}@${EC2_HOST}" \
             "export DEPLOY_PATH='${EC2_DEPLOY_PATH}' DEPLOY_BRANCH='${DEPLOY_BRANCH}'; bash -s" \
             -- < ./scripts/deploy-ec2.sh
