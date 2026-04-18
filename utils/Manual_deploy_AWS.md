@@ -72,6 +72,7 @@ sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin 
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker $USER
+newgrp docker
 sudo chmod 666 /var/run/docker.sock
 ```
 
@@ -113,8 +114,10 @@ docker buildx version
 
 ```bash
 git clone https://github.com/Daniax18/devops-iac-starter.git
-cd devops-iac-starter.git
+cd devops-iac-starter
 git checkout develop
+# create .env necessary from .env.example format
+nano .env
 docker compose up --build
 ```
 

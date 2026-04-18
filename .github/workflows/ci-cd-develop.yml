@@ -1,0 +1,96 @@
+name: CI-CD Develop
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+concurrency:
+  group: ci-cd-develop
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Build and validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Front/package-lock.json
+
+      - name: Build front-end
+        working-directory: Front
+        run: |
+          npm ci
+          npm run build
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Test gateway
+        working-directory: Gateway
+        run: |
+          chmod +x mvnw
+          ./mvnw test
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build authentication service
+        working-directory: Authentification
+        run: |
+          dotnet restore
+          dotnet build --configuration Release --no-restore
+
+      - name: Build product service
+        working-directory: Product
+        run: |
+          dotnet restore
+          dotnet build --configuration Release --no-restore
+
+      - name: Validate Docker Compose file
+        run: docker compose config
+
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+    needs: ci
+    environment: develop
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure SSH access
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy latest develop branch on EC2
+        shell: bash
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_DEPLOY_PATH: ${{ secrets.EC2_DEPLOY_PATH }}
+          DEPLOY_BRANCH: develop
+        run: |
+          ssh -i ~/.ssh/deploy_key "${EC2_USER}@${EC2_HOST}" \
+            "export DEPLOY_PATH='${EC2_DEPLOY_PATH}' DEPLOY_BRANCH='${DEPLOY_BRANCH}'; bash -s" \
+            -- < ./scripts/deploy-ec2.sh
