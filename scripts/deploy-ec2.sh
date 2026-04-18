@@ -8,6 +8,9 @@ DEPLOY_BRANCH="${DEPLOY_BRANCH:-develop}"
 echo "Deploy path: ${DEPLOY_PATH}"
 echo "Deploy branch: ${DEPLOY_BRANCH}"
 
+# Lancer le build en arrière-plan pour éviter le timeout SSH
+nohup bash -c 'docker compose up -d --build --remove-orphans && docker image prune -f' > /tmp/deploy.log 2>&1 &
+
 if [ ! -d "${DEPLOY_PATH}" ]; then
   echo "Deployment directory does not exist: ${DEPLOY_PATH}" >&2
   exit 1
