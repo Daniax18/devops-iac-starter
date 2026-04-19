@@ -1,13 +1,17 @@
-name: CI-CD Develop
+name: CI
 
 on:
   push:
     branches:
       - develop
+  pull_request:
+    branches:
+      - develop
+      - main
   workflow_dispatch:
 
 concurrency:
-  group: ci-cd-develop
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -64,36 +68,3 @@ jobs:
 
       - name: Validate Docker Compose file
         run: docker compose config
-
-  deploy:
-    name: Deploy to AWS EC2
-    runs-on: ubuntu-latest
-    needs: ci
-    environment: develop
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Configure SSH access
-        shell: bash
-        run: |
-          mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
-
-      - name: Deploy latest develop branch on EC2
-        shell: bash
-        env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_USER: ${{ secrets.EC2_USER }}
-          EC2_DEPLOY_PATH: ${{ secrets.EC2_DEPLOY_PATH }}
-          DEPLOY_BRANCH: develop
-        run: |
-          ssh -i ~/.ssh/deploy_key \
-            -o ServerAliveInterval=60 \
-            -o ServerAliveCountMax=10 \
-            "${EC2_USER}@${EC2_HOST}" \
-            "export DEPLOY_PATH='${EC2_DEPLOY_PATH}' DEPLOY_BRANCH='${DEPLOY_BRANCH}'; bash -s" \
-            -- < ./scripts/deploy-ec2.sh
