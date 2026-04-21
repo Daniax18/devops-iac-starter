@@ -3,7 +3,7 @@ services:
   front-service:
     build: ./Front
     ports:
-      - "8080:80"
+      - "${FRONT_PORT}:80"
     depends_on:
       - gateway-service
     networks:
@@ -13,6 +13,7 @@ services:
     build: ./Gateway
     networks:
       - iac-network
+    
 
   authentification-db:
     image: postgres:15
