@@ -1,4 +1,4 @@
-# DEVOPS-IAC-STARTER 🚀
+# DEVOPS-IAC-STARTER
 
 Déploiement automatisé multi-client avec **Ansible** et **Terraform** sur Docker en localhost.
 
